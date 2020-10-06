@@ -59,7 +59,7 @@ class DecisionTree:
         :return: X and Y numpy arrays
         """
         X, Y = dataset[0]
-        for i in tqdm(range(1, 2)):
+        for i in tqdm(range(1, len(dataset))):
             x, y = dataset[i]
             X = np.insert(X, -1, x, axis=0)
             Y = np.insert(Y, -1, y, axis=0)

@@ -4,7 +4,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
-from sklearn.tree import export_graphviz
 from sklearn import tree
 from tqdm import tqdm
 
@@ -89,12 +88,6 @@ class RFClassifier:
         estimators = self.best_clf.estimators_
         for i in range(len(estimators)):
             tree.plot_tree(estimators[i])
-            # name = "tree_" + str(i)
-            # export_graphviz(estimators[i], out_file=name + '.dot',
-            #                 feature_names=['RightKnee', 'LeftKnee', 'RightAnkle', 'LeftAnkle', 'RightHip', 'LeftHip'],
-            #                 class_names=['Walk', 'RampDescent', 'RampAscent', 'StairDescent', 'StairAscent'],
-            #                 rounded=True, proportion=False,
-            #                 precision=2, filled=True)
 
     def analyze_results(self):
         features_importance = pd.DataFrame(

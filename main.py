@@ -18,3 +18,4 @@ if __name__ == '__main__':
     # RF.analyze_results()
     decision_tree = DecisionTree(0)
     decision_tree.LOSO_train(train_data_info)
+    decision_tree.explore_tree()

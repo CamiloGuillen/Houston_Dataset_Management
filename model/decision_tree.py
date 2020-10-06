@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data_loader import DataLoader
 from tqdm import tqdm
@@ -11,6 +12,7 @@ class DecisionTree:
         :param ground_event: Int with ground event
         """
         self.model = None
+        self.best_X = None
         self.ground_event = ground_event
 
     def LOSO_train(self, train_data_info):
@@ -39,10 +41,14 @@ class DecisionTree:
             clf.fit(X_train, y_train)
             # Mean accuracy on test data
             acc = clf.score(X_test, y_test)
+            print("Mean Accuracy: ", acc)
             if acc > best_acc:
                 best_acc = acc
                 self.model = clf
+                self.best_X = X_test
+            break
 
+        print("Best Mean Accuracy: ", best_acc)
         return self.model
 
     @staticmethod
@@ -53,9 +59,47 @@ class DecisionTree:
         :return: X and Y numpy arrays
         """
         X, Y = dataset[0]
-        for i in tqdm(range(1, len(dataset))):
+        for i in tqdm(range(1, 2)):
             x, y = dataset[i]
             X = np.insert(X, -1, x, axis=0)
             Y = np.insert(Y, -1, y, axis=0)
 
         return X, Y
+
+    def explore_tree(self):
+        # Gini vs Thresholds
+        feature = self.model.tree_.feature
+        threshold = self.model.tree_.threshold
+        gini = self.model.tree_.impurity
+
+        features = {0: "RightKnee",
+                    1: "LeftKnee",
+                    2: "RightAnkle",
+                    3: "LeftAnkle",
+                    4: "RightHip",
+                    5: "LeftHip"}
+
+        for key in features.keys():
+            gini_values = []
+            threshold_values = []
+            for i, f in enumerate(feature):
+                if key == f:
+                    gini_values.append(gini[i])
+                    threshold_values.append(threshold[i])
+
+            plt.figure()
+            plt.scatter(gini_values, threshold_values)
+            plt.xlabel('Gini Values')
+            plt.ylabel('Threshold Values')
+            name = features[key] + '.png'
+            plt.savefig(name)
+
+        # Rules of decision tree
+        rules = tree.export_text(self.model,
+                                 feature_names=["RightKnee", "LeftKnee", "RightAnkle",
+                                                "LeftAnkle", "RightHip", "LeftHip"])
+        text_file = open("rules.txt", "wt")
+        n = text_file.write(rules)
+        text_file.close()
+
+        return None

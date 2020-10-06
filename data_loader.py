@@ -7,8 +7,8 @@ from data.data_management import Data_Management
 
 class DataLoader:
     def __init__(self, data_info, gait_cycle=False, event=None):
-        self.files_path = data_info["File"]
-        self.labels_path = data_info["Label"]
+        self.files_path = data_info["File"].tolist()
+        self.labels_path = data_info["Label"].tolist()
         self.gait_cycle = gait_cycle
         self.event = event
 

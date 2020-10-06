@@ -16,5 +16,5 @@ if __name__ == '__main__':
     # RF.test()
     # RF.explore_tree()
     # RF.analyze_results()
-    decision_tree = DecisionTree()
-    decision_tree.train(train_data_info)
+    decision_tree = DecisionTree(train_data_info)
+    # decision_tree.train(train_data_info)

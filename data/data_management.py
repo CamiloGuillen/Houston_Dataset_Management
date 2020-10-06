@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from sklearn.utils import resample
+
 
 class Data_Management:
     """
@@ -33,3 +35,16 @@ class Data_Management:
         self.df = pd.DataFrame(temp, index=range(len(temp)), columns=["X", "Y", "Z", "GaitCycle", "GroundEvent"])
 
         return self.df
+
+    def balance_classes(self):
+        # Separate majority and minority classes
+        df_majority = self.df[self.df["GroundEvent"] == self.df["GroundEvent"].value_counts().keys()[0]]
+        df_minority = self.df[self.df["GroundEvent"] == self.df["GroundEvent"].value_counts().keys()[1]]
+
+        # Down sample majority class
+        df_down_sampled = resample(df_majority, replace=False, n_samples=len(df_minority), random_state=123)
+
+        # Combine minority class with down sampled majority class
+        df_balanced = pd.concat([df_down_sampled, df_minority])
+
+        return df_balanced

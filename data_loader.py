@@ -47,6 +47,15 @@ class DataLoader:
         data_RightHip = RightHip.clean_Missing_Labels()
         data_LeftHip = LeftHip.clean_Missing_Labels()
 
+        # Balance classes if its separate by ground event
+        if not (self.event is None):
+            data_RightKnee = RightKnee.balance_classes()
+            data_LeftKnee = LeftKnee.balance_classes()
+            data_RightAnkle = RightAnkle.balance_classes()
+            data_LeftAnkle = LeftAnkle.balance_classes()
+            data_RightHip = RightHip.balance_classes()
+            data_LeftHip = LeftHip.balance_classes()
+
         # Sagittal Plane information
         splane_data_RightKnee = data_RightKnee['Z'].tolist()
         splane_data_LeftKnee = data_LeftKnee['Z'].tolist()

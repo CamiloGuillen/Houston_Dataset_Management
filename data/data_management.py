@@ -38,13 +38,17 @@ class Data_Management:
 
     def balance_classes(self):
         # Separate majority and minority classes
-        df_majority = self.df[self.df["GroundEvent"] == self.df["GroundEvent"].value_counts().keys()[0]]
-        df_minority = self.df[self.df["GroundEvent"] == self.df["GroundEvent"].value_counts().keys()[1]]
+        if len(self.df["GroundEvent"].value_counts()) > 1:
+            df_majority = self.df[self.df["GroundEvent"] == self.df["GroundEvent"].value_counts().keys()[0]]
+            df_minority = self.df[self.df["GroundEvent"] == self.df["GroundEvent"].value_counts().keys()[1]]
 
-        # Down sample majority class
-        df_down_sampled = resample(df_majority, replace=False, n_samples=len(df_minority), random_state=123)
+            # Down sample majority class
+            df_down_sampled = resample(df_majority, replace=False, n_samples=len(df_minority), random_state=123)
 
-        # Combine minority class with down sampled majority class
-        df_balanced = pd.concat([df_down_sampled, df_minority])
+            # Combine minority class with down sampled majority class
+            df_balanced = pd.concat([df_down_sampled, df_minority])
 
-        return df_balanced
+            return df_balanced
+        else:
+
+            return None

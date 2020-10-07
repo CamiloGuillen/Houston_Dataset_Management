@@ -16,6 +16,6 @@ if __name__ == '__main__':
     # RF.test()
     # RF.explore_tree()
     # RF.analyze_results()
-    decision_tree = DecisionTree(0)
+    decision_tree = DecisionTree(1)
     decision_tree.LOSO_train(train_data_info)
     decision_tree.explore_tree()

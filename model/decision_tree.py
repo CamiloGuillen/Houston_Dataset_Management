@@ -46,7 +46,6 @@ class DecisionTree:
                 best_acc = acc
                 self.model = clf
                 self.best_X = X_test
-            break
 
         print("Best Mean Accuracy: ", best_acc)
         return self.model

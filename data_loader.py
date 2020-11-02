@@ -18,7 +18,6 @@ class DataLoader:
     def __getitem__(self, idx):
         # Load the subject data
         subject = Healthy_Subject(self.files_path[idx])
-
         # Take the physic variable
         data_RightKnee = subject.joint_angle('jRightKnee')
         data_LeftKnee = subject.joint_angle('jLeftKnee')
@@ -26,6 +25,9 @@ class DataLoader:
         data_LeftAnkle = subject.joint_angle('jLeftAnkle')
         data_RightHip = subject.joint_angle('jRightHip')
         data_LeftHip = subject.joint_angle('jLeftHip')
+
+        # Sample rate
+        sample_rate = subject.get_sample_rate()
 
         # Load the labels
         labels = Load_Labels(self.labels_path[idx], len(data_RightKnee))
@@ -46,21 +48,6 @@ class DataLoader:
         data_LeftAnkle = LeftAnkle.clean_Missing_Labels()
         data_RightHip = RightHip.clean_Missing_Labels()
         data_LeftHip = LeftHip.clean_Missing_Labels()
-
-        # Balance classes if its separate by ground event
-        if not (self.event is None):
-            if not (RightKnee.balance_classes() is None):
-                data_RightKnee = RightKnee.balance_classes()
-            if not (LeftKnee.balance_classes() is None):
-                data_LeftKnee = LeftKnee.balance_classes()
-            if not (RightAnkle.balance_classes() is None):
-                data_RightAnkle = RightAnkle.balance_classes()
-            if not (LeftAnkle.balance_classes() is None):
-                data_LeftAnkle = LeftAnkle.balance_classes()
-            if not (RightHip.balance_classes() is None):
-                data_RightHip = RightHip.balance_classes()
-            if not (LeftHip.balance_classes() is None):
-                data_LeftHip = LeftHip.balance_classes()
 
         # Sagittal Plane information
         splane_data_RightKnee = data_RightKnee['Z'].tolist()
@@ -84,6 +71,6 @@ class DataLoader:
             splane_data_LeftHip)).T
 
         if self.gait_cycle:
-            return final_data, np.array(gait_cycle_labels)
+            return final_data, np.array(gait_cycle_labels), sample_rate
         else:
-            return final_data, np.array(ground_event_labels)
+            return final_data, np.array(ground_event_labels), sample_rate

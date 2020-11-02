@@ -28,7 +28,7 @@ def train_test_files(data_path, labels_path, train_percentage):
     train_subjects.sort()
     test_subjects = [s for s in subjects if s not in train_subjects]
     test_subjects.sort()
-    print(str(n_train) + " subjects were selected for train and " + str(len(subjects)-n_train) + " for test!")
+    # print(str(n_train) + " subjects were selected for train and " + str(len(subjects)-n_train) + " for test!")
 
     # Take all the files and labels for train and test subjects
     train_tags = [file.split('T')[0] for file in files if file.split('T')[0] in train_subjects]

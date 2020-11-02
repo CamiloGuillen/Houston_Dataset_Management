@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from data_loader import DataLoader
+from data.data_windowing import DataWindowing
 from tqdm import tqdm
 from sklearn import tree
 
@@ -12,7 +13,6 @@ class DecisionTree:
         :param ground_event: Int with ground event
         """
         self.model = None
-        self.best_X = None
         self.ground_event = ground_event
 
     def LOSO_train(self, train_data_info):
@@ -31,23 +31,53 @@ class DecisionTree:
             LOSO_TestSet = train_data_info[train_data_info["Tag"] == tag]
             train_dataset = DataLoader(LOSO_TrainSet, gait_cycle=False, event=self.ground_event)
             test_dataset = DataLoader(LOSO_TestSet, gait_cycle=False, event=self.ground_event)
-            print("Loading train data...")
-            X_train, y_train = self.__load_data(train_dataset)
-            print("Loading test data...")
-            X_test, y_test = self.__load_data(test_dataset)
 
-            # Train the tree
-            clf = tree.DecisionTreeClassifier(criterion='entropy', random_state=0)
-            clf.fit(X_train, y_train)
+            print("Training...")
+            clf = None
+            for trial in train_dataset:
+                # Data Windowing
+                signal = trial[0]
+                labels = trial[1]
+                sample_rate = trial[2]
+                window_size = 1.1
+                train_windows = DataWindowing(signal, labels, window_size, sample_rate)
+                clf = tree.DecisionTreeClassifier()
+                X = []
+                y = []
+                for window in train_windows:
+                    windows = window[0]
+                    labels = window[1]
+                    for i in range(len(windows)):
+                        X.append(windows[i])
+                        y.append(labels[i])
+
+                clf.fit(X, y)
+
+            print("Validating...")
             # Mean accuracy on test data
-            acc = clf.score(X_test, y_test)
-            print("Mean Accuracy: ", acc)
-            if acc > best_acc:
-                best_acc = acc
-                self.model = clf
-                self.best_X = X_test
+            for test_trial in test_dataset:
+                # Data Windowing
+                signal = test_trial[0]
+                labels = test_trial[1]
+                sample_rate = test_trial[2]
+                window_size = 1.1
+                test_windows = DataWindowing(signal, labels, window_size, sample_rate)
+                X_val = []
+                y_val = []
+                for window in test_windows:
+                    windows = window[0]
+                    labels = window[1]
+                    for i in range(len(windows)):
+                        X_val.append(windows[i])
+                        y_val.append(labels[i])
+                mean_acc = clf.score(X_val, y_val)
+                print("Mean Accuracy: ", mean_acc)
+                if mean_acc > best_acc:
+                    best_acc = mean_acc
+                    self.model = clf
 
         print("Best Mean Accuracy: ", best_acc)
+
         return self.model
 
     @staticmethod

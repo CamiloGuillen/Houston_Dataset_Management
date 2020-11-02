@@ -33,7 +33,8 @@ class DecisionTree:
             test_dataset = DataLoader(LOSO_TestSet, gait_cycle=False, event=self.ground_event)
 
             print("Training...")
-            clf = None
+            X = []
+            y = []
             for trial in tqdm(train_dataset):
                 # Data Windowing
                 signal = trial[0]
@@ -41,19 +42,18 @@ class DecisionTree:
                 sample_rate = trial[2]
                 window_size = 1.1
                 train_windows = DataWindowing(signal, labels, window_size, sample_rate)
-                clf = tree.DecisionTreeClassifier()
-                X = []
-                y = []
                 for window in train_windows:
                     windows = window[0]
                     labels = window[1]
                     for i in range(len(windows)):
                         X.append(windows[i])
                         y.append(labels[i])
-
-                clf.fit(X, y)
+            clf = tree.DecisionTreeClassifier()
+            clf.fit(X, y)
 
             print("Validating...")
+            X_val = []
+            y_val = []
             # Mean accuracy on test data
             for test_trial in tqdm(test_dataset):
                 # Data Windowing
@@ -62,19 +62,17 @@ class DecisionTree:
                 sample_rate = test_trial[2]
                 window_size = 1.1
                 test_windows = DataWindowing(signal, labels, window_size, sample_rate)
-                X_val = []
-                y_val = []
                 for window in test_windows:
                     windows = window[0]
                     labels = window[1]
                     for i in range(len(windows)):
                         X_val.append(windows[i])
                         y_val.append(labels[i])
-                mean_acc = clf.score(X_val, y_val)
-                print("Mean Accuracy: ", mean_acc)
-                if mean_acc > best_acc:
-                    best_acc = mean_acc
-                    self.model = clf
+            mean_acc = clf.score(X_val, y_val)
+            print("Mean Accuracy: ", mean_acc)
+            if mean_acc > best_acc:
+                best_acc = mean_acc
+                self.model = clf
 
         print("Best Mean Accuracy: ", best_acc)
 

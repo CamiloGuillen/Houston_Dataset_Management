@@ -34,7 +34,7 @@ class DecisionTree:
 
             print("Training...")
             clf = None
-            for trial in train_dataset:
+            for trial in tqdm(train_dataset):
                 # Data Windowing
                 signal = trial[0]
                 labels = trial[1]
@@ -55,7 +55,7 @@ class DecisionTree:
 
             print("Validating...")
             # Mean accuracy on test data
-            for test_trial in test_dataset:
+            for test_trial in tqdm(test_dataset):
                 # Data Windowing
                 signal = test_trial[0]
                 labels = test_trial[1]

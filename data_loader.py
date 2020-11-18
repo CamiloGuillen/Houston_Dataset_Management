@@ -20,11 +20,8 @@ class DataLoader:
         subject = Healthy_Subject(self.files_path[idx])
         # Take the physic variable
         data_RightKnee = subject.joint_angle('jRightKnee')
-        data_LeftKnee = subject.joint_angle('jLeftKnee')
         data_RightAnkle = subject.joint_angle('jRightAnkle')
-        data_LeftAnkle = subject.joint_angle('jLeftAnkle')
         data_RightHip = subject.joint_angle('jRightHip')
-        data_LeftHip = subject.joint_angle('jLeftHip')
 
         # Sample rate
         sample_rate = subject.get_sample_rate()
@@ -35,27 +32,18 @@ class DataLoader:
 
         # Create the Data Management objects
         RightKnee = Data_Management(data_RightKnee, subject_label, self.event)
-        LeftKnee = Data_Management(data_LeftKnee, subject_label, self.event)
         RightAnkle = Data_Management(data_RightAnkle, subject_label, self.event)
-        LeftAnkle = Data_Management(data_LeftAnkle, subject_label, self.event)
         RightHip = Data_Management(data_RightHip, subject_label, self.event)
-        LeftHip = Data_Management(data_LeftHip, subject_label, self.event)
 
         # Clean the missing labels and separate the data by ground event
         data_RightKnee = RightKnee.clean_Missing_Labels()
-        data_LeftKnee = LeftKnee.clean_Missing_Labels()
         data_RightAnkle = RightAnkle.clean_Missing_Labels()
-        data_LeftAnkle = LeftAnkle.clean_Missing_Labels()
         data_RightHip = RightHip.clean_Missing_Labels()
-        data_LeftHip = LeftHip.clean_Missing_Labels()
 
         # Sagittal Plane information
         splane_data_RightKnee = data_RightKnee['Z'].tolist()
-        splane_data_LeftKnee = data_LeftKnee['Z'].tolist()
         splane_data_RightAnkle = data_RightAnkle['Z'].tolist()
-        splane_data_LeftAnkle = data_LeftAnkle['Z'].tolist()
         splane_data_RightHip = data_RightHip['Z'].tolist()
-        splane_data_LeftHip = data_LeftHip['Z'].tolist()
 
         # Labels
         gait_cycle_labels = data_RightKnee['GaitCycle'].tolist()
@@ -64,13 +52,10 @@ class DataLoader:
         # Data
         final_data = np.array((
             splane_data_RightKnee,
-            splane_data_LeftKnee,
             splane_data_RightAnkle,
-            splane_data_LeftAnkle,
-            splane_data_RightHip,
-            splane_data_LeftHip)).T
+            splane_data_RightHip)).T
 
         if self.gait_cycle:
-            return final_data, np.array(gait_cycle_labels), sample_rate
+            return final_data, np.array(ground_event_labels), np.array(gait_cycle_labels), sample_rate
         else:
             return final_data, np.array(ground_event_labels), sample_rate

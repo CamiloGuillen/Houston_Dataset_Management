@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from data_loader import DataLoader
@@ -29,52 +30,49 @@ class DecisionTree:
             print("|-----------Subject out: " + tag + "-----------|")
             LOSO_TrainSet = train_data_info[train_data_info["Tag"] != tag]
             LOSO_TestSet = train_data_info[train_data_info["Tag"] == tag]
-            train_dataset = DataLoader(LOSO_TrainSet, gait_cycle=False, event=self.ground_event)
-            test_dataset = DataLoader(LOSO_TestSet, gait_cycle=False, event=self.ground_event)
+            train_dataset = DataLoader(LOSO_TrainSet, gait_cycle=True, event=self.ground_event)
+            test_dataset = DataLoader(LOSO_TestSet, gait_cycle=True, event=self.ground_event)
+            window_size = 0.25
 
+            # Load the train data
             print("Training...")
-            X = []
-            y = []
+            print("Extracting features...")
+            windows_data = []
+            windows_labels = []
             for trial in tqdm(train_dataset):
-                # Data Windowing
-                signal = trial[0]
-                labels = trial[1]
-                sample_rate = trial[2]
-                window_size = 1.1
-                train_windows = DataWindowing(signal, labels, window_size, sample_rate)
-                for window in train_windows:
-                    windows = window[0]
-                    labels = window[1]
-                    for i in range(len(windows)):
-                        X.append(windows[i])
-                        y.append(labels[i])
-            clf = tree.DecisionTreeClassifier()
-            clf.fit(X, y)
+                windows = DataWindowing(trial, window_size)
+                data_heel_contact = windows.segment_by(0)
+                data_toe_off = windows.segment_by(3)
+                final_data = pd.concat([data_heel_contact, data_toe_off], ignore_index=True)
+                windows_data.append(final_data[final_data.columns[0:15]])
+                windows_labels.append(final_data[final_data.columns[-1]])
 
+            X_train = pd.concat(windows_data, ignore_index=True)
+            y_train = pd.concat(windows_labels, ignore_index=True)
+
+            clf = tree.DecisionTreeClassifier()
+            clf.fit(X_train, y_train)
+            
             print("Validating...")
-            X_val = []
-            y_val = []
-            # Mean accuracy on test data
-            for test_trial in tqdm(test_dataset):
-                # Data Windowing
-                signal = test_trial[0]
-                labels = test_trial[1]
-                sample_rate = test_trial[2]
-                window_size = 1.1
-                test_windows = DataWindowing(signal, labels, window_size, sample_rate)
-                for window in test_windows:
-                    windows = window[0]
-                    labels = window[1]
-                    for i in range(len(windows)):
-                        X_val.append(windows[i])
-                        y_val.append(labels[i])
+            print("Extracting features...")
+            windows_data = []
+            windows_labels = []
+            for trial in tqdm(test_dataset):
+                windows = DataWindowing(trial, window_size)
+                data_heel_contact = windows.segment_by(0)
+                data_toe_off = windows.segment_by(3)
+                final_data = pd.concat([data_heel_contact, data_toe_off], ignore_index=True)
+                windows_data.append(final_data[final_data.columns[0:15]])
+                windows_labels.append(final_data[final_data.columns[-1]])
+
+            X_val = pd.concat(windows_data, ignore_index=True)
+            y_val = pd.concat(windows_labels, ignore_index=True)
+
             mean_acc = clf.score(X_val, y_val)
             print("Mean Accuracy: ", mean_acc)
             if mean_acc > best_acc:
                 best_acc = mean_acc
                 self.model = clf
-
-        print("Best Mean Accuracy: ", best_acc)
 
         return self.model
 

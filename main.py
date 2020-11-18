@@ -10,6 +10,6 @@ labels_path = os.path.join(path, "labels")
 
 if __name__ == '__main__':
     train_data_info, test_data_info = train_test_files(files_path, labels_path, train_percentage=1)
-    decision_tree = DecisionTree(0)
+    decision_tree = DecisionTree()
     decision_tree.LOSO_train(train_data_info)
     decision_tree.explore_tree()

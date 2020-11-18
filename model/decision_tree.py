@@ -97,12 +97,21 @@ class DecisionTree:
         threshold = self.model.tree_.threshold
         gini = self.model.tree_.impurity
 
-        features = {0: "RightKnee",
-                    1: "LeftKnee",
-                    2: "RightAnkle",
-                    3: "LeftAnkle",
-                    4: "RightHip",
-                    5: "LeftHip"}
+        features = {0: "min_RK",
+                    1: "max_RK",
+                    2: "mean_RK",
+                    3: "std_RK",
+                    4: "end_value_RK",
+                    5: "min_RA",
+                    6: "max_RA",
+                    7: "mean_RA",
+                    8: "std_RA",
+                    9: "end_value_RA",
+                    10: "min_RH",
+                    11: "max_RH",
+                    12: "mean_RH",
+                    13: "std_RH",
+                    14: "end_value_RH"}
 
         for key in features.keys():
             gini_values = []

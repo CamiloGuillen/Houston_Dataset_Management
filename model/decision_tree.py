@@ -130,8 +130,10 @@ class DecisionTree:
 
         # Rules of decision tree
         rules = tree.export_text(self.model,
-                                 feature_names=["RightKnee", "LeftKnee", "RightAnkle",
-                                                "LeftAnkle", "RightHip", "LeftHip"])
+                                 feature_names=["min_RK", "max_RK", "mean_RK", "std_RK", "end_value_RK",
+                                                "min_RA", "max_RA", "mean_RA", "std_RA", "end_value_RA",
+                                                "min_RH", "max_RH", "mean_RH", "std_RH", "end_value_RH"
+                                                ])
         text_file = open("rules.txt", "wt")
         n = text_file.write(rules)
         text_file.close()

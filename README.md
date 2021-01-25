@@ -1,1 +1,1 @@
-# Discovering a Language of Motion for Human - Robotic Leg Interaction
+# Management for Kinematic Dataset of the Houston University

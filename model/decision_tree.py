@@ -6,6 +6,7 @@ from data_loader import DataLoader
 from data.data_windowing import DataWindowing
 from tqdm import tqdm
 from sklearn import tree
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix
 
 
 class DecisionTree:
@@ -21,10 +22,19 @@ class DecisionTree:
         :param train_data_info: Pandas Data Frame with train information
         :return: Trained model
         """
+        # Get data information
+        window_size = 0.25
+        dataset = DataLoader(train_data_info, gait_cycle=True, event=self.ground_event)
+        print("Calculating balance data...")
+        _, y = self.__extract_features(dataset, window_size)
+        self.__balance_data_info(y)
+
         # Leave One Subject Out Cross Validation
         print("||||||||||||||||||Leave One Subject Out||||||||||||||||||")
-        tags = np.unique(train_data_info["Tag"].tolist())
         best_acc = 0
+        best_X_val = None
+        best_y_val = None
+        tags = np.unique(train_data_info["Tag"].tolist())
         for tag in tags:
             # Load the data
             print("|-----------Subject out: " + tag + "-----------|")
@@ -32,64 +42,71 @@ class DecisionTree:
             LOSO_TestSet = train_data_info[train_data_info["Tag"] == tag]
             train_dataset = DataLoader(LOSO_TrainSet, gait_cycle=True, event=self.ground_event)
             test_dataset = DataLoader(LOSO_TestSet, gait_cycle=True, event=self.ground_event)
-            window_size = 0.25
 
             # Load the train data
             print("Training...")
             print("Extracting features...")
-            windows_data = []
-            windows_labels = []
-            for trial in tqdm(train_dataset):
-                windows = DataWindowing(trial, window_size)
-                data_heel_contact = windows.segment_by(0)
-                data_toe_off = windows.segment_by(3)
-                final_data = pd.concat([data_heel_contact, data_toe_off], ignore_index=True)
-                windows_data.append(final_data[final_data.columns[0:15]])
-                windows_labels.append(final_data[final_data.columns[-1]])
-
-            X_train = pd.concat(windows_data, ignore_index=True)
-            y_train = pd.concat(windows_labels, ignore_index=True)
-
+            X_train, y_train = self.__extract_features(train_dataset, window_size)
             clf = tree.DecisionTreeClassifier()
             clf.fit(X_train, y_train)
             
             print("Validating...")
             print("Extracting features...")
-            windows_data = []
-            windows_labels = []
-            for trial in tqdm(test_dataset):
-                windows = DataWindowing(trial, window_size)
-                data_heel_contact = windows.segment_by(0)
-                data_toe_off = windows.segment_by(3)
-                final_data = pd.concat([data_heel_contact, data_toe_off], ignore_index=True)
-                windows_data.append(final_data[final_data.columns[0:15]])
-                windows_labels.append(final_data[final_data.columns[-1]])
-
-            X_val = pd.concat(windows_data, ignore_index=True)
-            y_val = pd.concat(windows_labels, ignore_index=True)
+            X_val, y_val = self.__extract_features(test_dataset, window_size)
 
             mean_acc = clf.score(X_val, y_val)
+            y_pred = clf.predict(X=X_val)
+            conf_matrix = confusion_matrix(y_true=y_val, y_pred=y_pred, labels=[0.0, 1.0, 2.0, 3.0, 4.0])
             print("Mean Accuracy: ", mean_acc)
+            print("Confusion Matrix", conf_matrix)
+
             if mean_acc > best_acc:
                 best_acc = mean_acc
                 self.model = clf
+                best_X_val = X_val
+                best_y_val = y_val
+
+        print("________________________________________")
+        print("Best accuracy: " + str(best_acc))
+        plot_confusion_matrix(self.model, best_X_val, best_y_val, labels=[0.0, 1.0, 2.0, 3.0, 4.0])
+        plt.show()
 
         return self.model
 
     @staticmethod
-    def __load_data(dataset):
+    def __balance_data_info(y):
+        classes, freq = np.unique(y, return_counts=True)
+        print("In total " + str(len(y)) + " windows.")
+        print("Class frequency:")
+        print("- LW: " + str((freq[0]/len(y))*100))
+        print("- RD: " + str((freq[1]/len(y))*100))
+        print("- RA: " + str((freq[2]/len(y))*100))
+        print("- SD: " + str((freq[3]/len(y))*100))
+        print("- SA: " + str((freq[4]/len(y))*100))
+
+        return None
+
+    @staticmethod
+    def __extract_features(dataset, window_size):
         """
         Load all the data from the files of the dataset
         :param dataset: Data loader object
-        :return: X and Y numpy arrays
+        :return: data and labels numpy arrays
         """
-        X, Y = dataset[0]
-        for i in tqdm(range(1, len(dataset))):
-            x, y = dataset[i]
-            X = np.insert(X, -1, x, axis=0)
-            Y = np.insert(Y, -1, y, axis=0)
+        windows_data = []
+        windows_labels = []
+        for trial in tqdm(dataset):
+            windows = DataWindowing(trial, window_size)
+            data_heel_contact = windows.segment_by(0)
+            data_toe_off = windows.segment_by(3)
+            final_data = pd.concat([data_heel_contact, data_toe_off], ignore_index=True)
+            windows_data.append(final_data[final_data.columns[0:15]])
+            windows_labels.append(final_data[final_data.columns[-1]])
 
-        return X, Y
+        X = pd.concat(windows_data, ignore_index=True)
+        y = pd.concat(windows_labels, ignore_index=True)
+
+        return X, y
 
     def explore_tree(self):
         # Gini vs Thresholds
@@ -138,4 +155,4 @@ class DecisionTree:
         n = text_file.write(rules)
         text_file.close()
 
-        return None
+        return n
